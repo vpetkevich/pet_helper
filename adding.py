@@ -258,15 +258,18 @@ class AddingPet:
                 reply_markup=menus.main_menu,
                 parse_mode=ParseMode.MARKDOWN,
             )
-            data['photos_dir'] = f'{message.message_id} {message.chat.id}'
+            data['photos_dir'] = f'pictures/{message.message_id} {message.chat.id}'
             for i in Pet.photos_list_to_print:
                 try:
-                    os.mkdir(f'{message.message_id} {message.chat.id}')
-                except FileExistsError:
+                    os.mkdir(data['photos_dir'])
+                except FileNotFoundError:
+                    os.mkdir('pictures')
+                    os.mkdir(f'pictures/{message.message_id} {message.chat.id}')
                     pass
                 await init_bot.bot.download_file_by_id(
-                    file_id=i.file_id, destination=f'{message.message_id} {message.chat.id}/{i.file_id}.jpeg')
+                    file_id=i.file_id, destination=f'pictures/{message.message_id} {message.chat.id}/{i.file_id}.jpeg')
                 await init_bot.bot.send_photo(message.chat.id, i.file_id)
+            Pet.photos_list_to_print.clear()
 
             pet = Pet(pet_type=data['pet_type'], name=data['name'], age=data['age'], age_type=data['age_type'],
                       rough_age=data['rough_age'], gender=data['gender'], color=data['color'],
