@@ -1,5 +1,5 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
-from config import fields
+from fields import fields
 
 btn_add_pet = KeyboardButton('Добавить питомца')
 btn_find_pet = KeyboardButton('Выбрать питомца')
@@ -21,26 +21,14 @@ pet_menu = {
     'boolean': ReplyKeyboardMarkup(resize_keyboard=True).add('Да', 'Нет', btn_cancel),
     'breed': ReplyKeyboardMarkup(resize_keyboard=True).add('Без породы', btn_cancel),
     'district': ReplyKeyboardMarkup(resize_keyboard=True).add('Минская', 'Гомельская', 'Гродненская', 'Брестская',
-                                                                  'Могилевская'),
+                                                                  'Могилевская', btn_cancel),
     'description': ReplyKeyboardMarkup(resize_keyboard=True).add('Нет', btn_cancel),
     'photos': ReplyKeyboardMarkup(resize_keyboard=True).add('Все фотографии добавлены', btn_cancel)
 }
 
 
 class FieldsMenu:
-    btn_name = 'Имя'
-    btn_type = 'Тип'
-    btn_age = 'Возраст'
-    btn_gender = 'Пол'
-    btn_color = 'Окрас'
-    btn_vaccinated = 'Вакцинация'
-    btn_processed = 'Стерилизован(а)'
-    btn_sterilized = 'Порода'
-    btn_chip = 'Чип'
-    btn_town = 'Город'
-    btn_district = 'Область'
-    btn_phone = 'Номер телефона'
-    btn_description = 'Дополнительная информация'
+    fields = [i for i in fields.keys()]
     fields_menu = ReplyKeyboardMarkup(resize_keyboard=True).add(
-        btn_name, btn_type, btn_age, btn_gender, btn_color, btn_vaccinated, btn_processed, btn_sterilized, btn_chip,
-        btn_town, btn_district, btn_phone, btn_description, btn_cancel)
+        'тип', 'имя', 'возраст', 'пол', 'окрас', 'вакцинирован(а)', 'обработан(а) от глистов/клещей', 'стерилизован(а)',
+        'чипирован(а)', 'порода', 'город', 'область', 'номер телефона', 'дополнительная информация', btn_cancel)

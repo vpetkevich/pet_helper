@@ -6,7 +6,7 @@ from aiogram.dispatcher import FSMContext
 from pet import init_bot
 from pet_states import editing_states
 import menus
-from config import fields, bool_fields
+from fields import fields, bool_fields
 
 pets_list = []
 

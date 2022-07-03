@@ -5,7 +5,7 @@ from aiogram.types import ParseMode
 from aiogram.dispatcher import FSMContext
 
 import menus
-from config import fields
+from fields import fields
 from pet import Pet, init_bot
 from pet_states import adding_states
 from helpers import get_age
@@ -39,7 +39,8 @@ class AddingPet:
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.type)
     async def process_type(message: types.Message, state: FSMContext):
-        await state.update_data(pet_type=message.text)
+        async with state.proxy() as data:
+            data[fields['тип']] = message.text
 
         await adding_states.next()
         await message.reply("Как питомца зовут?", reply_markup=menus.cancel_menu)
@@ -47,7 +48,8 @@ class AddingPet:
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.name)
     async def process_name(message: types.Message, state: FSMContext):
-        await state.update_data(name=message.text)
+        async with state.proxy() as data:
+            data[fields['имя']] = message.text
 
         await adding_states.next()
         await message.reply("Сколько питомцу лет/месяцев?", reply_markup=menus.cancel_menu)
@@ -64,11 +66,11 @@ class AddingPet:
                     if 'месяц' in message.text:
                         for k in ['лет', 'год']:
                             if message.text.find(k):
-                                data['age'] = get_age(message.text)
+                                data[fields['возраст']] = get_age(message.text)
                             else:
-                                data['age'] = 0
+                                data[fields['возраст']] = 0
                     else:
-                        data['age'] = get_age(message.text)
+                        data[fields['возраст']] = get_age(message.text)
                     data['rough_age'] = message.text
                     break
             if a:
@@ -86,7 +88,8 @@ class AddingPet:
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.gender)
     async def process_gender(message: types.Message, state: FSMContext):
-        await state.update_data(gender=message.text)
+        async with state.proxy() as data:
+            data[fields['пол']] = message.text
 
         await adding_states.next()
         await message.reply("Окрас питомца?", reply_markup=menus.cancel_menu)
@@ -94,7 +97,8 @@ class AddingPet:
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.color)
     async def process_color(message: types.Message, state: FSMContext):
-        await state.update_data(color=message.text)
+        async with state.proxy() as data:
+            data[fields['окрас']] = message.text
 
         await adding_states.next()
         await message.reply("Наличие прививок?", reply_markup=menus.pet_menu['boolean'])
@@ -107,10 +111,10 @@ class AddingPet:
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.vaccinated)
     async def process_cured(message: types.Message, state: FSMContext):
-        await adding_states.next()
         async with state.proxy() as data:
-            data['vaccinated'] = message.text
+            data[fields['вакцинирован(а)']] = message.text
 
+        await adding_states.next()
         await message.reply("Обработан(а) от глистов/клещей?", reply_markup=menus.pet_menu['boolean'])
 
     @staticmethod
@@ -121,10 +125,10 @@ class AddingPet:
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.processed)
     async def process_cured(message: types.Message, state: FSMContext):
-        await adding_states.next()
         async with state.proxy() as data:
-            data['processed'] = message.text
+            data[fields['обработан(а) от глистов/клещей']] = message.text
 
+        await adding_states.next()
         await message.reply("Стерилизация?", reply_markup=menus.pet_menu['boolean'])
 
     @staticmethod
@@ -135,10 +139,10 @@ class AddingPet:
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.sterilized)
     async def process_cured(message: types.Message, state: FSMContext):
-        await adding_states.next()
         async with state.proxy() as data:
-            data['sterilized'] = message.text
+            data[fields['стерилизован(а)']] = message.text
 
+        await adding_states.next()
         await message.reply("Укажите, пожалуйста, чипирован ли питомец", reply_markup=menus.pet_menu['boolean'])
 
     @staticmethod
@@ -150,7 +154,7 @@ class AddingPet:
     @init_bot.dp.message_handler(state=adding_states.chip)
     async def process_chip(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
-            data['chip'] = message.text
+            data[fields['чипирован(а)']] = message.text
 
         await adding_states.next()
         await message.reply("Укажите, пожалуйста, породу питомца", reply_markup=menus.pet_menu['breed'])
@@ -159,7 +163,7 @@ class AddingPet:
     @init_bot.dp.message_handler(state=adding_states.breed)
     async def process_breed(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
-            data['breed'] = message.text
+            data[fields['порода']] = message.text
 
         await adding_states.next()
         await message.reply("Укажите, пожалуйста, город", reply_markup=menus.cancel_menu)
@@ -167,32 +171,29 @@ class AddingPet:
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.town)
     async def process_town(message: types.Message, state: FSMContext):
-        await adding_states.next()
         async with state.proxy() as data:
-            data['town'] = message.text
+            data[fields['город']] = message.text
 
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
-        markup.add("Отмена")
-
+        await adding_states.next()
         await message.reply("Укажите, пожалуйста, область", reply_markup=menus.pet_menu['district'])
 
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.district)
     async def process_district(message: types.Message, state: FSMContext):
-        await adding_states.next()
         async with state.proxy() as data:
-            data['district'] = message.text
+            data[fields['область']] = message.text
 
+        await adding_states.next()
         await message.reply("Укажите, пожалуйста, Ваш номер телефона", reply_markup=menus.cancel_menu)
 
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.phone)
     async def process_phone(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
-            data['phone'] = message.text
+            data[fields['номер телефона']] = message.text
 
-        await message.reply("Загрузите, пожалуйста, фотографии питомца", reply_markup=menus.pet_menu['photos'])
         await adding_states.next()
+        await message.reply("Загрузите, пожалуйста, фотографии питомца", reply_markup=menus.pet_menu['photos'])
 
     @staticmethod
     @init_bot.dp.message_handler(content_types="photo", state=adding_states.pictures)
@@ -212,26 +213,26 @@ class AddingPet:
         await state.update_data(description=message.text)
 
         async with state.proxy() as data:
-            data['description'] = message.text
+            data[fields['дополнительная информация']] = message.text
 
             await init_bot.bot.send_message(
                 message.chat.id,
                 md.text(
                     md.text('Проверьте, пожалуйста, всё ли правильно.'),
-                    md.bold('Имя:', data[f'{fields["Имя"]}']),
-                    md.text('Тип:', data[f'{fields["Тип"]}']),
-                    md.text('Возраст:', data[f'{fields["Возраст"]}']),
-                    md.text('Пол:', data[f'{fields["Пол"]}']),
-                    md.text('Окрас:', data[f'{fields["Окрас"]}']),
-                    md.text('Вакцинация:', data[f'{fields["Вакцинация"]}']),
-                    md.text('Обработан(а) от глистов/клещей:', data[f'{fields["Обработан(а) от глистов/клещей"]}']),
-                    md.text('Стерилизован(а):', data[f'{fields["Стерилизован(а)"]}']),
-                    md.text('Чипирован(а):', data[f'{fields["Чипирован(а)"]}']),
-                    md.text('Порода:', data[f'{fields["Порода"]}']),
-                    md.text('Город:', data[f'{fields["Город"]}']),
-                    md.text('Область:', data[f'{fields["Область"]}']),
-                    md.text('Номер телефона:', data[f'{fields["Номер телефона"]}']),
-                    md.text('Дополнительная информация:', data[f'{fields["Дополнительная информация"]}']),
+                    md.bold(f'Имя:', data[f'{fields["имя"]}']),
+                    md.text(f'Тип:', data[f'{fields["тип"]}']),
+                    md.text(f'Возраст:', data[f'{fields["возраст"]}']),
+                    md.text(f'Пол:', data[f'{fields["пол"]}']),
+                    md.text(f'Цвет:', data[f'{fields["окрас"]}']),
+                    md.text(f'Вакцинирован(а):', data[f'{fields["вакцинирован(а)"]}']),
+                    md.text(f'Обработан(а) от глистов/клещей:', data[f'{fields["обработан(а) от глистов/клещей"]}']),
+                    md.text(f'Стерилизован(а):', data[f'{fields["стерилизован(а)"]}']),
+                    md.text(f'Чипирован(а):', data[f'{fields["чипирован(а)"]}']),
+                    md.text(f'Порода:', data[f'{fields["порода"]}']),
+                    md.text(f'Город:', data[f'{fields["город"]}']),
+                    md.text(f'Область:', data[f'{fields["область"]}']),
+                    md.text(f'Номер телефона:', data[f'{fields["номер телефона"]}']),
+                    md.text(f'Дополнительная информация:', data[f'{fields["дополнительная информация"]}']),
                     sep='\n',
                 ),
                 reply_markup=menus.main_menu,
@@ -250,12 +251,14 @@ class AddingPet:
                 await init_bot.bot.send_photo(message.chat.id, i.file_id)
             Pet.photos_list_to_print.clear()
 
-            pet = Pet(pet_type=data['pet_type'], name=data['name'], age=data['age'], age_type=data['age_type'],
-                      rough_age=data['rough_age'], gender=data['gender'], color=data['color'],
-                      vaccinated=data['vaccinated'], processed=data['processed'], sterilized=data['sterilized'],
-                      chip=data['chip'], breed=data['breed'], town=data['town'], district=data['district'],
-                      photos_dir=data['photos_dir'], phone=data['phone'], description=data['description'],
-                      user_id=message.from_user.id)
+            pet = Pet(
+                pet_type=data[fields["тип"]], name=data[fields["имя"]], age=data[fields["возраст"]],
+                age_type=data['age_type'], rough_age=data['rough_age'], gender=data[fields["пол"]],
+                color=data[fields["окрас"]], vaccinated=data[fields["вакцинирован(а)"]],
+                processed=data[fields["обработан(а) от глистов/клещей"]], sterilized=data[fields["стерилизован(а)"]],
+                chip=data[fields["чипирован(а)"]], breed=data[fields["порода"]], town=data[fields["город"]],
+                district=data[fields["область"]], photos_dir=data['photos_dir'], phone=data[fields["номер телефона"]],
+                description=data[fields["дополнительная информация"]], user_id=message.from_user.id)
             pet.write_to_db()
 
         await state.finish()
