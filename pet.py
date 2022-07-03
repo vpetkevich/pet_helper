@@ -4,10 +4,6 @@ from init_bot import InitBot
 init_bot = InitBot()
 
 
-class PhotoProcess:
-    dir_created = False
-
-
 class Pet:
     def __init__(self, pet_type, name, age, age_type, rough_age, gender, color, vaccinated, processed, sterilized, chip,
                  breed, town, district, photos_dir, phone, description, user_id):
@@ -43,7 +39,6 @@ class Pet:
         data_pet = (pet_id, self.pet_type, self.name, self.age, self.age_type, self.rough_age, self.gender, self.color,
                     self.bool_list[0], self.bool_list[1], self.bool_list[2], self.bool_list[3], self.breed, self.town,
                     self.district, self.phone, self.photos_dir, self.description)
-        print(data_pet)
 
         query_pet_user = """INSERT INTO pet_user(pet_id, user_id) VALUES(?, ?)"""
         init_bot.curs.execute(query_pet, data_pet)
