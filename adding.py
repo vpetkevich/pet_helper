@@ -34,9 +34,9 @@ class AddingPet:
     @init_bot.dp.message_handler(text="Добавить питомца")
     async def add_pet(message: types.Message):
         await adding_states.type.set()
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
-        markup.add("Кот", "Собака", "Другое", "Отмена")
-        await init_bot.bot.send_message(message.from_user.id, 'Укажите, пожалуйста, тип питомца', reply_markup=markup)
+
+        await init_bot.bot.send_message(message.from_user.id, 'Укажите, пожалуйста, тип питомца',
+                                        reply_markup=menus.pet_menu['type'])
 
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.type)
@@ -52,7 +52,7 @@ class AddingPet:
         await state.update_data(name=message.text)
 
         await adding_states.next()
-        await message.reply("Сколько питомцу лет/месяцев?")
+        await message.reply("Сколько питомцу лет/месяцев?", reply_markup=menus.cancel_menu)
 
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.age)
@@ -77,10 +77,8 @@ class AddingPet:
                 await message.reply("Некорректный возраст, введите, "
                                     "пожалуйста по одному из примеров: \n2 месяца \n2 года \n2 года и 2 месяца")
             else:
-                markup = types.ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
-                markup.add("Мальчик", "Девочка", "Отмена")
-                await message.reply("Пол питомца?", reply_markup=markup)
                 await adding_states.next()
+                await message.reply("Пол питомца?", reply_markup=menus.pet_menu['gender'])
 
     @staticmethod
     @init_bot.dp.message_handler(lambda message: message.text not in ["Мальчик", "Девочка"], state=adding_states.gender)
@@ -91,18 +89,17 @@ class AddingPet:
     @init_bot.dp.message_handler(state=adding_states.gender)
     async def process_gender(message: types.Message, state: FSMContext):
         await state.update_data(gender=message.text)
+
         await adding_states.next()
         await message.reply("Окрас питомца?", reply_markup=menus.cancel_menu)
 
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.color)
     async def process_color(message: types.Message, state: FSMContext):
-        await adding_states.next()
         await state.update_data(color=message.text)
 
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
-        markup.add("Да", "Нет", "Отмена")
-        await message.reply("Наличие прививок?", reply_markup=markup)
+        await adding_states.next()
+        await message.reply("Наличие прививок?", reply_markup=menus.pet_menu['boolean'])
 
     @staticmethod
     @init_bot.dp.message_handler(lambda message: message.text not in ["Да", "Нет"], state=adding_states.vaccinated)
@@ -116,9 +113,7 @@ class AddingPet:
         async with state.proxy() as data:
             data['vaccinated'] = message.text
 
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
-        markup.add("Да", "Нет", "Отмена")
-        await message.reply("Обработан(а) от глистов/клещей?", reply_markup=markup)
+        await message.reply("Обработан(а) от глистов/клещей?", reply_markup=menus.pet_menu['boolean'])
 
     @staticmethod
     @init_bot.dp.message_handler(lambda message: message.text not in ["Да", "Нет"], state=adding_states.processed)
@@ -132,9 +127,7 @@ class AddingPet:
         async with state.proxy() as data:
             data['processed'] = message.text
 
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
-        markup.add("Да", "Нет", "Отмена")
-        await message.reply("Стерилизация?", reply_markup=markup)
+        await message.reply("Стерилизация?", reply_markup=menus.pet_menu['boolean'])
 
     @staticmethod
     @init_bot.dp.message_handler(lambda message: message.text not in ["Да", "Нет"], state=adding_states.sterilized)
@@ -148,10 +141,7 @@ class AddingPet:
         async with state.proxy() as data:
             data['sterilized'] = message.text
 
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
-        markup.add("Да", "Нет", "Отмена")
-
-        await message.reply("Укажите, пожалуйста, чипирован ли питомец", reply_markup=markup)
+        await message.reply("Укажите, пожалуйста, чипирован ли питомец", reply_markup=menus.pet_menu['boolean'])
 
     @staticmethod
     @init_bot.dp.message_handler(lambda message: message.text not in ["Да", "Нет"], state=adding_states.chip)
@@ -161,25 +151,20 @@ class AddingPet:
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.chip)
     async def process_chip(message: types.Message, state: FSMContext):
-        await adding_states.next()
         async with state.proxy() as data:
             data['chip'] = message.text
 
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
-        markup.add("Без породы", "Отмена")
-        await message.reply("Укажите, пожалуйста, породу питомца", reply_markup=markup)
+        await adding_states.next()
+        await message.reply("Укажите, пожалуйста, породу питомца", reply_markup=menus.pet_menu['breed'])
 
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.breed)
     async def process_breed(message: types.Message, state: FSMContext):
-        await adding_states.next()
         async with state.proxy() as data:
             data['breed'] = message.text
 
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
-        markup.add("Отмена")
-
-        await message.reply("Укажите, пожалуйста, город", reply_markup=markup)
+        await adding_states.next()
+        await message.reply("Укажите, пожалуйста, город", reply_markup=menus.cancel_menu)
 
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.town)
@@ -191,7 +176,7 @@ class AddingPet:
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
         markup.add("Отмена")
 
-        await message.reply("Укажите, пожалуйста, область", reply_markup=markup)
+        await message.reply("Укажите, пожалуйста, область", reply_markup=menus.pet_menu['district'])
 
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.district)
@@ -200,7 +185,7 @@ class AddingPet:
         async with state.proxy() as data:
             data['district'] = message.text
 
-        await message.reply("Укажите, пожалуйста, Ваш номер телефона")
+        await message.reply("Укажите, пожалуйста, Ваш номер телефона", reply_markup=menus.cancel_menu)
 
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.phone)
@@ -208,10 +193,7 @@ class AddingPet:
         async with state.proxy() as data:
             data['phone'] = message.text
 
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
-        markup.add("Все фотографии добавлены", "Отмена")
-
-        await message.reply("Загрузите, пожалуйста, фотографии питомца", reply_markup=markup)
+        await message.reply("Загрузите, пожалуйста, фотографии питомца", reply_markup=menus.pet_menu['photos'])
         await adding_states.next()
 
     @staticmethod
@@ -221,10 +203,9 @@ class AddingPet:
 
     @staticmethod
     @init_bot.dp.message_handler(text="Все фотографии добавлены", state=adding_states.pictures)
-    async def photos_uploaded(message, state: FSMContext):
+    async def photos_uploaded(message):
         await adding_states.next()
-        await message.reply("Дополнительная информация?", reply_markup=menus.cancel_menu)
-        await state.update_data(has_folder=1)
+        await message.reply("Дополнительная информация?", reply_markup=menus.pet_menu['description'])
 
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.description)

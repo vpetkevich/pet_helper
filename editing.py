@@ -6,7 +6,7 @@ from aiogram.dispatcher import FSMContext
 from pet import init_bot
 from pet_states import editing_states
 import menus
-from config import fields
+from config import fields, bool_fields
 
 pets_list = []
 
@@ -64,20 +64,36 @@ class PetEditing:
             query = f'SELECT {fields[field_name]} from pet where id="{data["pet_id"]}"'
             init_bot.curs.execute(query)
             field_data = init_bot.curs.fetchone()[0]
-            await message.reply(text=f'Текущее значение поля {field_name}: {field_data}', reply_markup=menus.main_menu)
+            markup = menus.cancel_menu
+            if fields[field_name] in bool_fields:
+                markup = menus.pet_menu['boolean']
+                if field_data == 1:
+                    field_data = 'Да'
+                else:
+                    field_data = 'Нет'
+            elif fields[field_name] in menus.pet_menu:
+                markup = menus.pet_menu[fields[field_name]]
+            await message.reply(text=f'Текущее значение поля {field_name}: {field_data}', reply_markup=markup)
+            await init_bot.bot.send_message(chat_id=message.chat.id, text='Введите новое значение:')
             await editing_states.next()
 
     @staticmethod
     @init_bot.dp.message_handler(state=editing_states.edit_field)
     async def edit_field_data(message: types.Message, state: FSMContext):
         field_data_to_insert = message.text
+        field_data_to_show = message.text
         async with state.proxy() as data:
+            if fields[data['field_name']] in bool_fields:
+                if field_data_to_insert == 'Да':
+                    field_data_to_insert = 1
+                else:
+                    field_data_to_insert = 0
             query = f'UPDATE pet set {fields[data["field_name"]]} = "{field_data_to_insert}"' \
                     f'where id="{data["pet_id"]}"'
             init_bot.curs.execute(query)
             init_bot.conn.commit()
-            await message.reply(text=f'Новое значение поля {data["field_name"]}: {field_data_to_insert}',
-                                reply_markup=menus.cancel_menu)
+            await message.reply(text=f'Новое значение поля {data["field_name"]}: {field_data_to_show}',
+                                reply_markup=menus.main_menu)
             await state.finish()
 
     @staticmethod
