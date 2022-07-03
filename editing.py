@@ -3,10 +3,10 @@ from aiogram import types
 from aiogram import executor
 from aiogram.dispatcher import FSMContext
 
-from pet import init_bot
+from pet import init_bot, Pet
 from pet_states import editing_states
 import menus
-from config import fields
+from fields import db_fields, bool_fields
 
 pets_list = []
 
@@ -59,12 +59,21 @@ class PetEditing:
     @init_bot.dp.message_handler(state=editing_states.show_field_data)
     async def show_field_data(message: types.Message, state: FSMContext):
         field_name = message.text
+        for i in db_fields:
+            if field_name in db_fields[i]:
+                field_name = db_fields[i][0]
         await state.update_data(field_name=message.text)
         async with state.proxy() as data:
-            query = f'SELECT {fields[field_name]} from pet where id="{data["pet_id"]}"'
+            query = f'SELECT {db_fields[field_name][0]} from pet where id="{data["pet_id"]}"'
             init_bot.curs.execute(query)
             field_data = init_bot.curs.fetchone()[0]
-            await message.reply(text=f'Текущее значение поля {field_name}: {field_data}', reply_markup=menus.main_menu)
+            if field_name in bool_fields:
+                if field_data == 1:
+                    field_data = 'Да'
+                else:
+                    field_data = 'Нет'
+            await message.reply(text=f'Текущее значение поля {db_fields[field_name][1]}: {field_data}', reply_markup=menus.cancel_menu)
+            await init_bot.bot.send_message(text='Введите новое значение', chat_id=message.chat.id)
             await editing_states.next()
 
     @staticmethod
@@ -72,7 +81,7 @@ class PetEditing:
     async def edit_field_data(message: types.Message, state: FSMContext):
         field_data_to_insert = message.text
         async with state.proxy() as data:
-            query = f'UPDATE pet set {fields[data["field_name"]]} = "{field_data_to_insert}"' \
+            query = f'UPDATE pet set {db_fields[data["field_name"][0]]} = "{field_data_to_insert}"' \
                     f'where id="{data["pet_id"]}"'
             init_bot.curs.execute(query)
             init_bot.conn.commit()
