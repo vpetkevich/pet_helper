@@ -4,3 +4,4 @@ fields = {'Тип': 'pet_type', 'Имя': 'name', 'Возраст': 'rough_age',
           'Вакцинация': 'vaccinated', 'Обработан(а) от глистов/клещей': 'processed', 'Стерилизован(а)': 'sterilized',
           'Чипирован(а)': 'chip', 'Порода': 'breed', 'Город': 'town', 'Область': 'district', 'Номер телефона': 'phone',
           'Дополнительная информация': 'description'}
+bool_fields = ['vaccinated', 'processed', 'sterilized', 'chip']
