@@ -3,7 +3,7 @@ from aiogram import types
 from aiogram import executor
 from aiogram.dispatcher import FSMContext
 
-from pet import init_bot
+from pet import init_bot, EditPet
 from pet_states import editing_states
 import menus
 from fields import fields, bool_fields
@@ -80,6 +80,7 @@ class PetEditing:
     @staticmethod
     @init_bot.dp.message_handler(state=editing_states.edit_field)
     async def edit_field_data(message: types.Message, state: FSMContext):
+        edit_pet = EditPet()
         field_data_to_insert = message.text
         field_data_to_show = message.text
         async with state.proxy() as data:
@@ -88,10 +89,7 @@ class PetEditing:
                     field_data_to_insert = 1
                 else:
                     field_data_to_insert = 0
-            query = f'UPDATE pet set {fields[data["field_name"]]} = "{field_data_to_insert}"' \
-                    f'where id="{data["pet_id"]}"'
-            init_bot.curs.execute(query)
-            init_bot.conn.commit()
+            edit_pet.edit_pet_field(fields[data['field_name']], field_data_to_insert, data['pet_id'])
             await message.reply(text=f'Новое значение поля {data["field_name"]}: {field_data_to_show}',
                                 reply_markup=menus.main_menu)
             await state.finish()

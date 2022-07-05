@@ -4,7 +4,14 @@ from init_bot import InitBot
 init_bot = InitBot()
 
 
-class Pet:
+class EditPet:
+    def edit_pet_field(self, field_name, field_data_to_insert, pet_id):
+        query = f'UPDATE pet set {field_name} = "{field_data_to_insert}" where id="{pet_id}"'
+        init_bot.curs.execute(query)
+        init_bot.conn.commit()
+
+
+class CreatePet:
     def __init__(self, pet_type, name, age, age_type, rough_age, gender, color, vaccinated, processed, sterilized, chip,
                  breed, town, district, photos_dir, phone, description, user_id):
         self.pet_type = pet_type

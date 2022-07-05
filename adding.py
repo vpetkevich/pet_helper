@@ -6,7 +6,7 @@ from aiogram.dispatcher import FSMContext
 
 import menus
 from fields import fields
-from pet import Pet, init_bot
+from pet import CreatePet, init_bot
 from pet_states import adding_states
 from helpers import get_age
 
@@ -198,7 +198,7 @@ class AddingPet:
     @staticmethod
     @init_bot.dp.message_handler(content_types="photo", state=adding_states.pictures)
     async def handle_docs_photo(message):
-        Pet.photos_list_to_print.append(message.photo[3])
+        CreatePet.photos_list_to_print.append(message.photo[3])
 
     @staticmethod
     @init_bot.dp.message_handler(text="Все фотографии добавлены", state=adding_states.pictures)
@@ -239,7 +239,7 @@ class AddingPet:
                 parse_mode=ParseMode.MARKDOWN,
             )
             data['photos_dir'] = f'pictures/{message.message_id} {message.chat.id}'
-            for i in Pet.photos_list_to_print:
+            for i in CreatePet.photos_list_to_print:
                 try:
                     os.mkdir(data['photos_dir'])
                 except FileNotFoundError:
@@ -249,9 +249,9 @@ class AddingPet:
                 await init_bot.bot.download_file_by_id(
                     file_id=i.file_id, destination=f'pictures/{message.message_id} {message.chat.id}/{i.file_id}.jpeg')
                 await init_bot.bot.send_photo(message.chat.id, i.file_id)
-            Pet.photos_list_to_print.clear()
+            CreatePet.photos_list_to_print.clear()
 
-            pet = Pet(
+            pet = CreatePet(
                 pet_type=data[fields["тип"]], name=data[fields["имя"]], age=data[fields["возраст"]],
                 age_type=data['age_type'], rough_age=data['rough_age'], gender=data[fields["пол"]],
                 color=data[fields["окрас"]], vaccinated=data[fields["вакцинирован(а)"]],
