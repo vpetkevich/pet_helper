@@ -3,9 +3,9 @@ from aiogram import executor
 from deletion import PetDeletion
 from bot_adding import BotAdding
 from searching import PetSearching
-from editing import PetEditing
+from bot_editing import PetEditing
 from pets_tests import TestE2EPet
-from pet import init_bot
+from init_bot import init_bot
 
 
 def startup():

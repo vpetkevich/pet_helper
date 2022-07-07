@@ -3,7 +3,7 @@ from aiogram import types
 from aiogram import executor
 from aiogram.dispatcher import FSMContext
 
-from pet import init_bot
+from init_bot import init_bot
 from pet_states import deletion_states
 import menus
 

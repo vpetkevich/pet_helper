@@ -3,7 +3,7 @@ from aiogram import types, executor
 from aiogram.dispatcher import FSMContext
 from random import randint
 
-from pet import init_bot
+from init_bot import init_bot
 from py_adding import AddPet
 from py_editing import EditPet
 

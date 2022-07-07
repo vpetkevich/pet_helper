@@ -1,7 +1,7 @@
 import os
 from aiogram import types
 
-from pet import init_bot
+from init_bot import init_bot
 from pet_states import editing_states
 import menus
 from fields import fields, bool_fields

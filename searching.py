@@ -4,7 +4,7 @@ from aiogram import executor
 from aiogram.dispatcher import FSMContext
 import os
 
-from pet import init_bot
+from init_bot import init_bot
 from pet_states import searching_states
 import menus
 from aiogram.types import ReplyKeyboardMarkup

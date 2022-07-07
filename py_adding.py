@@ -6,7 +6,7 @@ from aiogram.types import ParseMode
 import uuid
 
 from fields import fields
-from pet import init_bot
+from init_bot import init_bot
 from pet_states import adding_states
 import menus
 from helpers import get_age
