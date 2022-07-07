@@ -1,6 +1,5 @@
 import aiogram.utils.markdown as md
 from aiogram import types
-from aiogram import executor
 from aiogram.dispatcher import FSMContext
 import os
 
@@ -9,16 +8,11 @@ from pet_states import searching_states
 import menus
 from aiogram.types import ReplyKeyboardMarkup
 
-pet_data = {}
 
+class SearchPet:
+    pet_data = {}
 
-class PetSearching:
-    def __init__(self):
-        executor.start_polling(init_bot.dp)
-
-    @staticmethod
-    @init_bot.dp.message_handler(text='Выбрать питомца')
-    async def search_pets(message: types.Message):
+    async def search_pets(self, message: types.Message):
         await searching_states.params.set()
         menu = ReplyKeyboardMarkup(resize_keyboard=True).add("Кот", "Собака", "Другое", menus.btn_optional_param,
                                                              menus.btn_cancel)
@@ -27,71 +21,67 @@ class PetSearching:
         await init_bot.bot.send_message(chat_id=message.chat.id, text="Тип")
         await searching_states.next()
 
-    @staticmethod
-    @init_bot.dp.message_handler(state=searching_states.type)
-    async def choose_gender(message: types.Message):
-        pet_data['pet_type'] = message.text
+    async def choose_type(self, message: types.Message):
+        self.pet_data['pet_type'] = message.text
 
         menu = ReplyKeyboardMarkup(resize_keyboard=True).add("До года", "От 1 до 3", "От 3 до 6",
                                                              menus.btn_optional_param, menus.btn_cancel)
         await init_bot.bot.send_message(chat_id=message.chat.id, text="Возраст", reply_markup=menu)
         await searching_states.next()
 
-    @staticmethod
-    @init_bot.dp.message_handler(state=searching_states.gender)
-    async def choose_gender(message: types.Message):
+    async def choose_type(self, message: types.Message):
+        self.pet_data['pet_type'] = message.text
+
+        menu = ReplyKeyboardMarkup(resize_keyboard=True).add("До года", "От 1 до 3", "От 3 до 6",
+                                                             menus.btn_optional_param, menus.btn_cancel)
+        await init_bot.bot.send_message(chat_id=message.chat.id, text="Возраст", reply_markup=menu)
+        await searching_states.next()
+
+    async def choose_age(self, message: types.Message):
         menu = ReplyKeyboardMarkup(resize_keyboard=True).add("Мальчик", "Девочка", menus.btn_optional_param,
                                                              menus.btn_cancel)
         await init_bot.bot.send_message(chat_id=message.chat.id, text="Пол", reply_markup=menu)
         if message.text != 'Не имеет значения':
             if message.text == "До года":
-                pet_data['age'] = 0
+                self.pet_data['age'] = 0
             elif message.text == "От 1 до 3":
-                pet_data['age'] = 1, 2,
+                self.pet_data['age'] = 1, 2,
             else:
-                pet_data['age'] = 3, 4, 5,
+                self.pet_data['age'] = 3, 4, 5,
         await searching_states.next()
 
-    @staticmethod
-    @init_bot.dp.message_handler(state=searching_states.color)
-    async def choose_color(message: types.Message):
+    async def choose_gender(self, message: types.Message):
         menu = ReplyKeyboardMarkup(resize_keyboard=True).add("Белый", "Черный", "Рыжий", "Трехцветный", "Серый",
                                                              "Лесной", "Смешанный", menus.btn_optional_param,
                                                              menus.btn_cancel)
         await init_bot.bot.send_message(chat_id=message.chat.id, text="Окрас", reply_markup=menu)
         if message.text != 'Не имеет значения':
-            pet_data['gender'] = message.text
+            self.pet_data['gender'] = message.text
         await searching_states.next()
 
-    @staticmethod
-    @init_bot.dp.message_handler(state=searching_states.district)
-    async def choose_color(message: types.Message):
+    async def choose_color(self, message: types.Message):
         if message.text != 'Не имеет значения':
-            pet_data['color'] = message.text
+            self.pet_data['color'] = message.text
         menu = ReplyKeyboardMarkup(resize_keyboard=True).add(
             "Минская", "Гомельская", "Гродненская", "Витебская", "Брестская",
             menus.btn_optional_param, menus.btn_cancel)
         await init_bot.bot.send_message(chat_id=message.chat.id, text="Область", reply_markup=menu)
         await searching_states.next()
 
-    @staticmethod
-    @init_bot.dp.message_handler(state=searching_states.town)
-    async def choose_color(message: types.Message):
+    async def choose_district(self, message: types.Message):
         if message.text != 'Не имеет значения':
-            pet_data['district'] = message.text
+            self.pet_data['district'] = message.text
         menu = ReplyKeyboardMarkup(resize_keyboard=True).add(menus.btn_optional_param, menus.btn_cancel)
         await init_bot.bot.send_message(chat_id=message.chat.id, text="Город", reply_markup=menu)
         await searching_states.next()
 
-    @staticmethod
-    @init_bot.dp.message_handler(state=searching_states.display)
-    async def display_results(message: types.Message, state: FSMContext):
+    async def finalisation(self, message: types.Message, state: FSMContext):
         if message.text != 'Не имеет значения':
-            pet_data['town'] = message.text
-        if pet_data != {}:
+            self.pet_data['town'] = message.text
+        if self.pet_data != {}:
             where_clause = 'SELECT * FROM pet WHERE'
             n = 0
-            for i, j in pet_data.items():
+            for i, j in self.pet_data.items():
                 if type(j) == tuple:
                     if n == 0:
                         where_clause = f'{where_clause} {i} in {j}'
@@ -163,7 +153,7 @@ class PetSearching:
                 for k in os.listdir(i[16]):
                     await init_bot.bot.send_photo(chat_id=message.chat.id, photo=open(f'{i[16]}/{k}', 'rb'),
                                                   reply_to_message_id=a.message_id)
-            pet_data.clear()
+            self.pet_data.clear()
         else:
             await init_bot.bot.send_message(
                 message.chat.id,
@@ -171,10 +161,3 @@ class PetSearching:
                 reply_markup=menus.main_menu
             )
         await state.finish()
-
-    @staticmethod
-    @init_bot.dp.message_handler(state='*', commands='Отмена')
-    @init_bot.dp.message_handler(text='Отмена',  state='*')
-    async def cancel_handler(message: types.Message, state: FSMContext):
-        await state.finish()
-        await message.reply('Отменено.', reply_markup=init_bot.main_menu)
