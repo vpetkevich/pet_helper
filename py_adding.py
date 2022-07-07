@@ -3,9 +3,10 @@ from aiogram.dispatcher import FSMContext
 import aiogram.utils.markdown as md
 import os
 from aiogram.types import ParseMode
+import uuid
 
 from fields import fields
-from pet import CreatePet, init_bot
+from pet import init_bot
 from pet_states import adding_states
 import menus
 from helpers import get_age
@@ -134,7 +135,7 @@ class AddPet:
 
     @staticmethod
     async def photos(message: types.Message):
-        CreatePet.photos_list_to_print.append(message.photo[3])
+        CreatePetRow.photos_list_to_print.append(message.photo[3])
 
     @staticmethod
     async def photos_uploaded(message: types.Message):
@@ -173,7 +174,7 @@ class AddPet:
                 parse_mode=ParseMode.MARKDOWN,
             )
             data['photos_dir'] = f'pictures/{message.message_id} {message.chat.id}'
-            for i in CreatePet.photos_list_to_print:
+            for i in CreatePetRow.photos_list_to_print:
                 try:
                     os.mkdir(data['photos_dir'])
                 except FileNotFoundError:
@@ -184,9 +185,9 @@ class AddPet:
                     file_id=i.file_id, destination=f'pictures/{message.message_id} {message.chat.id}/{i.file_id}.jpeg')
                 await init_bot.bot.send_photo(message.chat.id, i.file_id)
                 print(i.file_id)
-            CreatePet.photos_list_to_print.clear()
+            CreatePetRow.photos_list_to_print.clear()
 
-            pet = CreatePet(
+            pet = CreatePetRow(
                 pet_type=data[fields["тип"]], name=data[fields["имя"]], age=data[fields["возраст"]],
                 age_type=data['age_type'], rough_age=data['rough_age'], gender=data[fields["пол"]],
                 color=data[fields["окрас"]], vaccinated=data[fields["вакцинирован(а)"]],
@@ -197,4 +198,48 @@ class AddPet:
             pet.write_to_db()
 
         await state.finish()
+
+
+class CreatePetRow:
+    def __init__(self, pet_type, name, age, age_type, rough_age, gender, color, vaccinated, processed, sterilized, chip,
+                 breed, town, district, photos_dir, phone, description, user_id):
+        self.pet_type = pet_type
+        self.name = name
+        self.age = age
+        self.age_type = age_type
+        self.rough_age = rough_age
+        self.gender = gender
+        self.color = color
+        self.breed = breed
+        self.town = town
+        self.district = district
+        self.photos_dir = photos_dir
+        self.phone = phone
+        self.description = description
+        self.user_id = user_id
+
+        self.bool_list = [vaccinated, processed, sterilized, chip]
+        for i in self.bool_list:
+            if i == 'Да':
+                self.bool_list[self.bool_list.index(i)] = True
+            else:
+                self.bool_list[self.bool_list.index(i)] = False
+
+    photos_list_to_print = []
+
+    def write_to_db(self):
+        query_pet = """INSERT INTO pet(id, pet_type, name, age, age_type, rough_age, gender, color, vaccinated,
+        processed, sterilized, chip, breed, town, district, phone, photos, description)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+        pet_id = str(uuid.uuid1())
+        data_pet = (pet_id, self.pet_type, self.name, self.age, self.age_type, self.rough_age, self.gender, self.color,
+                    self.bool_list[0], self.bool_list[1], self.bool_list[2], self.bool_list[3], self.breed, self.town,
+                    self.district, self.phone, self.photos_dir, self.description)
+
+        query_pet_user = """INSERT INTO pet_user(pet_id, user_id) VALUES(?, ?)"""
+        init_bot.curs.execute(query_pet, data_pet)
+        data_pet_user = (pet_id, self.user_id)
+        init_bot.curs.execute(query_pet_user, data_pet_user)
+
+        init_bot.conn.commit()
 

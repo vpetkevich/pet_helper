@@ -1,42 +1,11 @@
 import unittest
-import sqlite3
 from aiogram import types, executor
 from aiogram.dispatcher import FSMContext
+from random import randint
 
-from pet import CreatePet, EditPet, init_bot
+from pet import init_bot
 from py_adding import AddPet
-
-
-class PetsTest(unittest.TestCase):
-    def test_adding(self):
-        pet = CreatePet(
-            pet_type="Кот", name="Пушинка", age="3 года",
-            age_type="года", rough_age="3 года", gender="Мальчик",
-            color="Белый", vaccinated="Да",
-            processed="Да", sterilized="Да",
-            chip="Да", breed="Без породы", town="Минск",
-            district="Минская", photos_dir="pictures/9887 460795077", phone="1231231123",
-            description="Нет", user_id="6c185a0e-faca-11ec-ab67-acde48001122")
-        pet.write_to_db()
-
-        conn = sqlite3.connect('pet_helper.db')
-        curs = conn.cursor()
-        curs.execute("SELECT * FROM pet where name='Пушинка'")
-        pet_name = curs.fetchall()[0][2]
-        self.assertEqual(pet_name, 'Пушинка')
-
-    def test_editing(self):
-        edit_pet = EditPet()
-        conn = sqlite3.connect('pet_helper.db')
-        curs = conn.cursor()
-        curs.execute("SELECT * FROM pet where name='Пушинка'")
-        pet_id = curs.fetchall()[0][0]
-
-        edit_pet.edit_pet_field("color", "Черный", pet_id)
-
-        curs.execute("SELECT * FROM pet where name='Пушинка'")
-        pet_color = curs.fetchall()[0][7]
-        self.assertEqual(pet_color, "Черный")
+from py_editing import EditPet
 
 
 class TestE2EPet:
@@ -45,10 +14,10 @@ class TestE2EPet:
 
     @staticmethod
     @init_bot.dp.message_handler(text='add_test', state='*')
-    async def cmd_test(message: types.Message, state: FSMContext):
+    async def cmd_add_test(message: types.Message, state: FSMContext):
         msg = await init_bot.bot.send_message(message.from_user.id, 'Кот')
         await AddPet().type(msg, state)
-        msg = await init_bot.bot.send_message(message.from_user.id, 'Вася')
+        msg = await init_bot.bot.send_message(message.from_user.id, f'Котя{randint(0, 1000)}')
         await AddPet().name(msg, state)
         msg = await init_bot.bot.send_message(message.from_user.id, '5 лет')
         await AddPet().age(msg, state)
@@ -81,6 +50,16 @@ class TestE2EPet:
         msg = await init_bot.bot.send_message(message.from_user.id, 'Нет')
         await AddPet().finalisation(msg, state)
 
+    @staticmethod
+    @init_bot.dp.message_handler(text='edit_test', state='*')
+    async def cmd_edit_test(message: types.Message, state: FSMContext):
+        msg = await init_bot.bot.send_message(message.from_user.id, 'Вася')
+        await EditPet().show_pets(msg)
+        await EditPet().show_fields(msg, state)
+        msg = await init_bot.bot.send_message(message.from_user.id, 'пол')
+        await EditPet().show_field_data(msg, state)
+        msg = await init_bot.bot.send_message(message.from_user.id, 'Девочка')
+        await EditPet().edit_field_data(msg, state)
 
 
 

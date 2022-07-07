@@ -2,7 +2,7 @@ from aiogram import executor, types
 from aiogram.dispatcher import FSMContext
 
 import menus
-from pet import CreatePet, init_bot
+from pet import init_bot
 from pet_states import adding_states
 from py_adding import AddPet
 
