@@ -104,7 +104,6 @@ class PetSearching:
                     else:
                         where_clause = f'{where_clause} and {i} in ("{j}")'
                     n += 1
-            print(where_clause)
         else:
             where_clause = 'SELECT * FROM pet'
         init_bot.curs.execute(where_clause)

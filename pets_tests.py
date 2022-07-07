@@ -17,7 +17,8 @@ class TestE2EPet:
     async def cmd_add_test(message: types.Message, state: FSMContext):
         msg = await init_bot.bot.send_message(message.from_user.id, 'Кот')
         await AddPet().type(msg, state)
-        msg = await init_bot.bot.send_message(message.from_user.id, f'Котя{randint(0, 1000)}')
+        pet_name = f'Котя{randint(0, 1000)}'
+        msg = await init_bot.bot.send_message(message.from_user.id, pet_name)
         await AddPet().name(msg, state)
         msg = await init_bot.bot.send_message(message.from_user.id, '5 лет')
         await AddPet().age(msg, state)
@@ -50,9 +51,15 @@ class TestE2EPet:
         msg = await init_bot.bot.send_message(message.from_user.id, 'Нет')
         await AddPet().finalisation(msg, state)
 
+        query = f'SELECT * FROM pet WHERE name = "{pet_name}"'
+        init_bot.curs.execute(query)
+        assert init_bot.curs.fetchall()[0][2] == pet_name
+
     @staticmethod
     @init_bot.dp.message_handler(text='edit_test', state='*')
     async def cmd_edit_test(message: types.Message, state: FSMContext):
+        query = f'UPDATE pet set gender = "Мальчик" where name = "Вася"'
+        init_bot.curs.execute(query)
         msg = await init_bot.bot.send_message(message.from_user.id, 'Вася')
         await EditPet().show_pets(msg)
         await EditPet().show_fields(msg, state)
@@ -61,9 +68,9 @@ class TestE2EPet:
         msg = await init_bot.bot.send_message(message.from_user.id, 'Девочка')
         await EditPet().edit_field_data(msg, state)
 
-
-
-
+        query = f'SELECT * FROM pet WHERE name = "Вася"'
+        init_bot.curs.execute(query)
+        assert init_bot.curs.fetchall()[0][6] == "Девочка"
 
 
 if __name__ == '__main__':
