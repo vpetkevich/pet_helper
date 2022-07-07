@@ -69,7 +69,7 @@ class AddPet:
         await message.reply("Наличие прививок?", reply_markup=menus.pet_menu['boolean'])
 
     @staticmethod
-    async def cured(message: types.Message, state: FSMContext):
+    async def vaccinated(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data[fields['вакцинирован(а)']] = message.text
 
@@ -183,6 +183,7 @@ class AddPet:
                 await init_bot.bot.download_file_by_id(
                     file_id=i.file_id, destination=f'pictures/{message.message_id} {message.chat.id}/{i.file_id}.jpeg')
                 await init_bot.bot.send_photo(message.chat.id, i.file_id)
+                print(i.file_id)
             CreatePet.photos_list_to_print.clear()
 
             pet = CreatePet(

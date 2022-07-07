@@ -69,8 +69,8 @@ class BotAdding:
 
     @staticmethod
     @init_bot.dp.message_handler(state=adding_states.vaccinated)
-    async def process_cured(message: types.Message, state: FSMContext):
-        await AddPet().cured(message, state)
+    async def process_vaccinated(message: types.Message, state: FSMContext):
+        await AddPet().vaccinated(message, state)
 
     @staticmethod
     @init_bot.dp.message_handler(lambda message: message.text not in ["Да", "Нет"], state=adding_states.processed)
