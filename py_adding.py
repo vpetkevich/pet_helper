@@ -1,53 +1,26 @@
+from aiogram import types
+from aiogram.dispatcher import FSMContext
 import aiogram.utils.markdown as md
 import os
-from aiogram import executor, types
 from aiogram.types import ParseMode
-from aiogram.dispatcher import FSMContext
 
-import menus
 from fields import fields
 from pet import CreatePet, init_bot
 from pet_states import adding_states
+import menus
 from helpers import get_age
 
 
-class AddingPet:
-    def __init__(self):
-        executor.start_polling(init_bot.dp)
-
+class AddPet:
     @staticmethod
-    @init_bot.dp.message_handler(commands=['start'])
-    async def cmd_start(message: types.Message):
-        await init_bot.bot.send_message(message.from_user.id, 'Привет, {0.first_name}'.format(message.from_user),
-                                        reply_markup=menus.main_menu)
-
-    @staticmethod
-    @init_bot.dp.message_handler(state='*', commands='Отмена')
-    @init_bot.dp.message_handler(text='Отмена',  state='*')
-    async def cancel_handler(message: types.Message, state: FSMContext):
-        await state.finish()
-        await message.reply('Отменено.', reply_markup=menus.main_menu)
-
-    @staticmethod
-    @init_bot.dp.message_handler(text="Добавить питомца")
-    async def add_pet(message: types.Message):
-        await adding_states.type.set()
-
-        await init_bot.bot.send_message(message.from_user.id, 'Укажите, пожалуйста, тип питомца',
-                                        reply_markup=menus.pet_menu['type'])
-
-    @staticmethod
-    @init_bot.dp.message_handler(state=adding_states.type)
-    async def process_type(message: types.Message, state: FSMContext):
+    async def type(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data[fields['тип']] = message.text
-
         await adding_states.next()
         await message.reply("Как питомца зовут?", reply_markup=menus.cancel_menu)
 
     @staticmethod
-    @init_bot.dp.message_handler(state=adding_states.name)
-    async def process_name(message: types.Message, state: FSMContext):
+    async def name(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data[fields['имя']] = message.text
 
@@ -55,8 +28,7 @@ class AddingPet:
         await message.reply("Сколько питомцу лет/месяцев?", reply_markup=menus.cancel_menu)
 
     @staticmethod
-    @init_bot.dp.message_handler(state=adding_states.age)
-    async def process_age(message: types.Message, state: FSMContext):
+    async def age(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             a = True
             for i in ['лет', 'года', 'месяца', 'месяцев', 'месяц', 'год']:
@@ -81,13 +53,7 @@ class AddingPet:
                 await message.reply("Пол питомца?", reply_markup=menus.pet_menu['gender'])
 
     @staticmethod
-    @init_bot.dp.message_handler(lambda message: message.text not in ["Мальчик", "Девочка"], state=adding_states.gender)
-    async def process_gender_invalid(message: types.Message):
-        await message.reply("Неправильный пол, выберите, пожалуйста, из предложенных")
-
-    @staticmethod
-    @init_bot.dp.message_handler(state=adding_states.gender)
-    async def process_gender(message: types.Message, state: FSMContext):
+    async def gender(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data[fields['пол']] = message.text
 
@@ -95,8 +61,7 @@ class AddingPet:
         await message.reply("Окрас питомца?", reply_markup=menus.cancel_menu)
 
     @staticmethod
-    @init_bot.dp.message_handler(state=adding_states.color)
-    async def process_color(message: types.Message, state: FSMContext):
+    async def color(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data[fields['окрас']] = message.text
 
@@ -104,13 +69,7 @@ class AddingPet:
         await message.reply("Наличие прививок?", reply_markup=menus.pet_menu['boolean'])
 
     @staticmethod
-    @init_bot.dp.message_handler(lambda message: message.text not in ["Да", "Нет"], state=adding_states.vaccinated)
-    async def process_gender_invalid(message: types.Message):
-        await message.reply("Неправильный ответ, выберите, пожалуйста, из предложенных")
-
-    @staticmethod
-    @init_bot.dp.message_handler(state=adding_states.vaccinated)
-    async def process_cured(message: types.Message, state: FSMContext):
+    async def cured(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data[fields['вакцинирован(а)']] = message.text
 
@@ -118,13 +77,7 @@ class AddingPet:
         await message.reply("Обработан(а) от глистов/клещей?", reply_markup=menus.pet_menu['boolean'])
 
     @staticmethod
-    @init_bot.dp.message_handler(lambda message: message.text not in ["Да", "Нет"], state=adding_states.processed)
-    async def process_gender_invalid(message: types.Message):
-        await message.reply("Неправильный ответ, выберите, пожалуйста, из предложенных")
-
-    @staticmethod
-    @init_bot.dp.message_handler(state=adding_states.processed)
-    async def process_cured(message: types.Message, state: FSMContext):
+    async def processed(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data[fields['обработан(а) от глистов/клещей']] = message.text
 
@@ -132,13 +85,7 @@ class AddingPet:
         await message.reply("Стерилизация?", reply_markup=menus.pet_menu['boolean'])
 
     @staticmethod
-    @init_bot.dp.message_handler(lambda message: message.text not in ["Да", "Нет"], state=adding_states.sterilized)
-    async def process_gender_invalid(message: types.Message):
-        await message.reply("Неправильный ответ, выберите, пожалуйста, из предложенных")
-
-    @staticmethod
-    @init_bot.dp.message_handler(state=adding_states.sterilized)
-    async def process_cured(message: types.Message, state: FSMContext):
+    async def sterilized(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data[fields['стерилизован(а)']] = message.text
 
@@ -146,13 +93,7 @@ class AddingPet:
         await message.reply("Укажите, пожалуйста, чипирован ли питомец", reply_markup=menus.pet_menu['boolean'])
 
     @staticmethod
-    @init_bot.dp.message_handler(lambda message: message.text not in ["Да", "Нет"], state=adding_states.chip)
-    async def process_gender_invalid(message: types.Message):
-        await message.reply("Неправильный ответ, выберите, пожалуйста, из предложенных")
-
-    @staticmethod
-    @init_bot.dp.message_handler(state=adding_states.chip)
-    async def process_chip(message: types.Message, state: FSMContext):
+    async def chip(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data[fields['чипирован(а)']] = message.text
 
@@ -160,8 +101,7 @@ class AddingPet:
         await message.reply("Укажите, пожалуйста, породу питомца", reply_markup=menus.pet_menu['breed'])
 
     @staticmethod
-    @init_bot.dp.message_handler(state=adding_states.breed)
-    async def process_breed(message: types.Message, state: FSMContext):
+    async def breed(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data[fields['порода']] = message.text
 
@@ -169,8 +109,7 @@ class AddingPet:
         await message.reply("Укажите, пожалуйста, город", reply_markup=menus.cancel_menu)
 
     @staticmethod
-    @init_bot.dp.message_handler(state=adding_states.town)
-    async def process_town(message: types.Message, state: FSMContext):
+    async def town(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data[fields['город']] = message.text
 
@@ -178,8 +117,7 @@ class AddingPet:
         await message.reply("Укажите, пожалуйста, область", reply_markup=menus.pet_menu['district'])
 
     @staticmethod
-    @init_bot.dp.message_handler(state=adding_states.district)
-    async def process_district(message: types.Message, state: FSMContext):
+    async def district(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data[fields['область']] = message.text
 
@@ -187,8 +125,7 @@ class AddingPet:
         await message.reply("Укажите, пожалуйста, Ваш номер телефона", reply_markup=menus.cancel_menu)
 
     @staticmethod
-    @init_bot.dp.message_handler(state=adding_states.phone)
-    async def process_phone(message: types.Message, state: FSMContext):
+    async def phone(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data[fields['номер телефона']] = message.text
 
@@ -196,19 +133,16 @@ class AddingPet:
         await message.reply("Загрузите, пожалуйста, фотографии питомца", reply_markup=menus.pet_menu['photos'])
 
     @staticmethod
-    @init_bot.dp.message_handler(content_types="photo", state=adding_states.pictures)
-    async def handle_docs_photo(message):
+    async def photos(message: types.Message):
         CreatePet.photos_list_to_print.append(message.photo[3])
 
     @staticmethod
-    @init_bot.dp.message_handler(text="Все фотографии добавлены", state=adding_states.pictures)
-    async def photos_uploaded(message):
+    async def photos_uploaded(message: types.Message):
         await adding_states.next()
         await message.reply("Дополнительная информация?", reply_markup=menus.pet_menu['description'])
 
     @staticmethod
-    @init_bot.dp.message_handler(state=adding_states.description)
-    async def process_description(message: types.Message, state: FSMContext):
+    async def finalisation(message: types.Message, state: FSMContext):
         await adding_states.next()
         await state.update_data(description=message.text)
 
@@ -262,3 +196,4 @@ class AddingPet:
             pet.write_to_db()
 
         await state.finish()
+

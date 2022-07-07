@@ -1,19 +1,19 @@
 from aiogram import executor
 
-from init_bot import InitBot
 from deletion import PetDeletion
-from adding import AddingPet
+from bot_adding import BotAdding
 from searching import PetSearching
 from editing import PetEditing
-
-init_bot = InitBot()
+from pets_tests import TestE2EPet
+from pet import init_bot
 
 
 def startup():
     PetDeletion()
-    AddingPet()
+    BotAdding()
     PetSearching()
     PetEditing()
+    TestE2EPet()
 
 
 if __name__ == '__main__':
