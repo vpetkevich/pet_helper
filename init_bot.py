@@ -11,3 +11,6 @@ class InitBot:
     dp = Dispatcher(bot, storage=storage)
     conn = sqlite3.connect('pet_helper.db')
     curs = conn.cursor()
+
+
+init_bot = InitBot()

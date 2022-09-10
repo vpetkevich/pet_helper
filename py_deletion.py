@@ -1,21 +1,16 @@
 import os
 from aiogram import types
-from aiogram import executor
 from aiogram.dispatcher import FSMContext
 
-from pet import init_bot
+from init_bot import init_bot
 from pet_states import deletion_states
 import menus
 
 pets_list = []
 
 
-class PetDeletion:
-    def __init__(self):
-        executor.start_polling(init_bot.dp)
-
+class DeletePet:
     @staticmethod
-    @init_bot.dp.message_handler(text='Удалить запись')
     async def display_pets(message: types.Message):
         await deletion_states.display.set()
         await message.reply("Кого из питомцев Вы хотите удалить?", reply_markup=menus.cancel_menu)
@@ -35,8 +30,7 @@ class PetDeletion:
         await deletion_states.next()
 
     @staticmethod
-    @init_bot.dp.message_handler(state=deletion_states.delete)
-    async def delete_pets(message: types.Message, state: FSMContext):
+    async def delete_pet(message: types.Message, state: FSMContext):
         pet_name = message.text
         if pet_name in [i[1] for i in pets_list]:
             for i in pets_list:
@@ -56,10 +50,3 @@ class PetDeletion:
                                             "перепроверьте и введите ещё раз",
                                             reply_markup=menus.main_menu)
             await state.finish()
-
-    @staticmethod
-    @init_bot.dp.message_handler(state='*', commands='Отмена')
-    @init_bot.dp.message_handler(text='Отмена',  state='*')
-    async def cancel_handler(message: types.Message, state: FSMContext):
-        await state.finish()
-        await message.reply('Отменено.', reply_markup=menus.main_menu)
