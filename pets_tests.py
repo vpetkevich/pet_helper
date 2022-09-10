@@ -6,6 +6,8 @@ from random import randint
 from init_bot import init_bot
 from py_adding import AddPet
 from py_editing import EditPet
+from py_searching import SearchPet
+from py_deletion import DeletePet
 
 
 class TestE2EPet:
@@ -17,7 +19,9 @@ class TestE2EPet:
     async def cmd_add_test(message: types.Message, state: FSMContext):
         msg = await init_bot.bot.send_message(message.from_user.id, 'Кот')
         await AddPet().type(msg, state)
-        pet_name = f'Котя{randint(0, 1000)}'
+        #pet_name = f'Котя{randint(0, 1000)}'
+        #name for other tests
+        pet_name = 'Котя'
         msg = await init_bot.bot.send_message(message.from_user.id, pet_name)
         await AddPet().name(msg, state)
         msg = await init_bot.bot.send_message(message.from_user.id, '5 лет')
@@ -71,6 +75,32 @@ class TestE2EPet:
         query = f'SELECT * FROM pet WHERE name = "Вася"'
         init_bot.curs.execute(query)
         assert init_bot.curs.fetchall()[0][6] == "Девочка"
+
+    @staticmethod
+    @init_bot.dp.message_handler(text='search_test', state='*')
+    async def cmd_search_test(message: types.Message, state: FSMContext):
+        await SearchPet().search_pets(message)
+        msg = await init_bot.bot.send_message(message.from_user.id, 'Кот')
+        await SearchPet().choose_type(msg)
+        msg = await init_bot.bot.send_message(message.from_user.id, 'От 3 до 6')
+        await SearchPet().choose_age(msg)
+        msg = await init_bot.bot.send_message(message.from_user.id, 'Мальчик')
+        await SearchPet().choose_gender(msg)
+        msg = await init_bot.bot.send_message(message.from_user.id, 'Белый')
+        await SearchPet().choose_color(msg)
+        msg = await init_bot.bot.send_message(message.from_user.id, 'Минская')
+        await SearchPet().choose_district(msg)
+        msg = await init_bot.bot.send_message(message.from_user.id, 'Минск')
+        await SearchPet().finalisation(msg, state)
+
+    @staticmethod
+    @init_bot.dp.message_handler(text='delete_test', state='*')
+    async def cmd_search_test(message: types.Message, state: FSMContext):
+        msg = await init_bot.bot.send_message(message.from_user.id, "Start")
+        await DeletePet().display_pets(msg)
+        msg = await init_bot.bot.send_message(message.from_user.id, "Котя582")
+        await DeletePet().delete_pet(msg, state)
+
 
 
 if __name__ == '__main__':

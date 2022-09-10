@@ -12,21 +12,14 @@ from aiogram.types import ReplyKeyboardMarkup
 class SearchPet:
     pet_data = {}
 
-    async def search_pets(self, message: types.Message):
+    @staticmethod
+    async def search_pets(message: types.Message):
         await searching_states.params.set()
         menu = ReplyKeyboardMarkup(resize_keyboard=True).add("Кот", "Собака", "Другое", menus.btn_optional_param,
                                                              menus.btn_cancel)
         await init_bot.bot.send_message(chat_id=message.chat.id, text="Давайте подберём питомца по параметрам",
                                         reply_markup=menu)
         await init_bot.bot.send_message(chat_id=message.chat.id, text="Тип")
-        await searching_states.next()
-
-    async def choose_type(self, message: types.Message):
-        self.pet_data['pet_type'] = message.text
-
-        menu = ReplyKeyboardMarkup(resize_keyboard=True).add("До года", "От 1 до 3", "От 3 до 6",
-                                                             menus.btn_optional_param, menus.btn_cancel)
-        await init_bot.bot.send_message(chat_id=message.chat.id, text="Возраст", reply_markup=menu)
         await searching_states.next()
 
     async def choose_type(self, message: types.Message):
@@ -94,6 +87,7 @@ class SearchPet:
                     else:
                         where_clause = f'{where_clause} and {i} in ("{j}")'
                     n += 1
+            print(where_clause)
         else:
             where_clause = 'SELECT * FROM pet'
         init_bot.curs.execute(where_clause)

@@ -52,6 +52,7 @@ class AddPet:
             else:
                 await adding_states.next()
                 await message.reply("Пол питомца?", reply_markup=menus.pet_menu['gender'])
+            print(data[fields['возраст']])
 
     @staticmethod
     async def gender(message: types.Message, state: FSMContext):
